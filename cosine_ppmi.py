@@ -9,7 +9,7 @@ from collections import Counter
 
 def html_code(n_notes):    
     codes = {}
-    for note in range(2400001,2400001+n_notes):
+    for note in range(2350001,2350001+n_notes):
         try:
             url = f'https://www.lanacion.com.ar/{note}'
             req = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; Win64; x64)'})
@@ -132,7 +132,7 @@ if __name__ == "__main__":
     textos = get_text(htmls)
 
     ### TOKENS & CO-OCURRENCIES MATRIX
-    texto_prueba = textos['2400002']
+    texto_prueba = textos['2350001']
     token_prueba = tokenize(texto_prueba)
     token_matrix = gen_co_ocurrencies_matrix(textos, window=6)
     
