@@ -18,9 +18,9 @@ def html_code(n_notes):
             clean_url = req_result.geturl()
             codes[str(note)] = raw
             if note % 10 == 0:
-                print(f'Printing note number: {note-240000}')
+                print(f'Printing note number: {note}')
         except:
-            pass
+            continue
     return codes
 
 
@@ -29,14 +29,22 @@ def get_text(html_dictionary):
     for n, code in html_dictionary.items():
         soup = BeautifulSoup(code, 'lxml')
         try:
+            print(f'Begin printing {n}')
             text = soup.find_all('section',id='cuerpo')
             text = text[0].find_all('p') 
-        except:
-            text = soup.find_all('section', class_='cuerpo__nota')
-            text = text[0].find_all('p') 
+            print(f'succesfully processed {n} with id == cuerpo')
+        except IndexError:
+            try:
+                print(f'Begin printing {n}')
+                text = soup.find_all('div', class_='cuerpo__nota')
+                text = text[0].find_all('p') 
+                print(f'succesfully processed {n} with class == cuerpo__nota')
+            except:
+                continue
         text = [texto.text.strip() for texto in text]
         text = ','.join(text).strip()
         text = text.replace('\r\n', ' ')
+        text = text.replace("\'","")
         text = text.replace('(...)',".")
         text = text.replace('.,', '.')
         text = text.replace(' , ', '')        
@@ -47,7 +55,7 @@ def get_text(html_dictionary):
 
 if __name__ == "__main__":
     last_note_number = 2436886    # Ultimo ID de nota de LN
-    number_pages = 2000
+    number_pages = 1000
     htmls = html_code(number_pages)
     # test note number: 188160
     textos = get_text(htmls)
