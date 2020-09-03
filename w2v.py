@@ -2,15 +2,19 @@ import logging, gensim, os, pickle
 from nltk.tokenize import sent_tokenize, word_tokenize
 
 
-def get_raw_text(path, html=False):
+def get_raw_text(html=False):
     """
-    Extracts text from the notes
+    Extracts text from the notes from pickle files or .txt files.
     """
     if html:
-        with open('ln_tokens_tr', 'rb') as archivo:
-            raw_text = pickle.load(archivo)
+        raw_text = []
+        for i in range(1,5):    
+            with open(f'notas_{i}.p', 'rb') as archivo:
+                text = pickle.load(archivo)
+                raw_text.append(text)
     else:
         raw_text = {}
+        path = "./datos_clase_03/la_nacion_data/articles_data/"
         articles = os.listdir(path)
         for number, art in enumerate(articles):
             with open(path+art, encoding='utf-8') as archivo:
@@ -75,7 +79,7 @@ if __name__ =='__main__':
     train_path_ln = "./datos_clase_03/la_nacion_data/articles_data/"
 
     ### Collecting data
-    data = get_raw_text(train_path_ln)
+    data = get_raw_text()
     tokens = tokenize_newspaper_news(data)
     
     ### W2V model - 5 windows
