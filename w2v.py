@@ -7,11 +7,15 @@ def get_raw_text(html=False):
     Extracts text from the notes from pickle files or .txt files.
     """
     if html:
-        raw_text = []
+        raw_text = {}
         for i in range(1,5):    
-            with open(f'notas_{i}.p', 'rb') as archivo:
+            with open('notas_'+str(i)+'.p', 'rb') as archivo:
                 text = pickle.load(archivo)
-                raw_text.append(text)
+                for number, note in text.items():
+                    raw_text[number] = note
+                    if int(number) % 1000 == 0:
+                        print(f'Printing note {int(number)}')
+                print(f"Succesfully added to dictionary notes from file {i}")
     else:
         raw_text = {}
         path = "./datos_clase_03/la_nacion_data/articles_data/"
@@ -21,7 +25,7 @@ def get_raw_text(html=False):
                 raw_text[number] = archivo.read()
             if number % 1000 == 0:
                 print(f'Successfully printed note number {number}')
-        return raw_text
+    return raw_text
 
 
 def tokenize_newspaper_news(text):
@@ -35,7 +39,7 @@ def tokenize_newspaper_news(text):
         sentences = sent_tokenize(value)
         sentences = [word_tokenize(e) for e in sentences if (e != ',') | (e != '.')]
         tokens_list.append(sentences)
-        if n % 500 == 0:
+        if int(n) % 500 == 0:
             print(f'Sucessfully stored note number {n}')
 
     sentence_list = []
@@ -79,7 +83,8 @@ if __name__ =='__main__':
     train_path_ln = "./datos_clase_03/la_nacion_data/articles_data/"
 
     ### Collecting data
-    data = get_raw_text()
+    # data = get_raw_text() # for .txt input
+    data = get_raw_text(True)
     tokens = tokenize_newspaper_news(data)
     
     ### W2V model - 5 windows
