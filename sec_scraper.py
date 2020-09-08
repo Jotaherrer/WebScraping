@@ -26,11 +26,11 @@ def get_filings(tsv_files, company, report):
     return files_list
 
 
-def html_code(filings_list):
+def html_link(filings_list):
     """
     Returns clean url links to scrap statements from selected company.
     """
-    html_codes = {}
+    html_links = {}
     for lista in filings_list:
         
         for e in lista:    
@@ -40,10 +40,37 @@ def html_code(filings_list):
                 table = table['Document'][0].split(' ')
 
                 url_formatted = url.replace('-', '').replace('index.html', '')
-                html_codes[lista[3]] = url_formatted+table[0] 
+                html_links[lista[3]] = url_formatted+'/'+table[0] 
 
-    return html_codes
+    return html_links
 
+
+def scrap_data(links):
+    '''
+    Scraps SEC filings from any company to extract required financial statements.
+    '''
+    requested_info = {}
+    for date, url in links.items():    
+        data = pd.read_html(url)
+        for table in data:
+            table = table.dropna(how='all')
+            bs = (table[0].str.contains('Retained') | table[0].str.contains('Total assets'))
+            if bs.any():
+                balance_sheet = table
+                balance_sheet = balance_sheet.iloc[:,[0,2,6]]   # Filter items, period 1 and period 2.
+                balance_sheet = balance_sheet.drop(index=3)     # Delete row with "unaudited" clarification.
+                balance_sheet.columns = balance_sheet.iloc[0]   # Create columns from df lines. 
+                balance_sheet.columns.values[0] = 'Item'        # Change first column name
+                balance_sheet = balance_sheet.loc[3:,:]
+                balance_sheet[balance_sheet.columns[1:]] = balance_sheet[balance_sheet.columns[1:]].astype(str)     # Convert to data to str
+                balance_sheet[balance_sheet.columns[1]] = balance_sheet[balance_sheet.columns[1]].map(lambda x: x.replace('(','-'))     # Format negative numbers in col 1
+                balance_sheet[balance_sheet.columns[2]] = balance_sheet[balance_sheet.columns[2]].map(lambda x: x.replace('(','-'))     # Format negative numbers in col 2
+                balance_sheet[balance_sheet.columns[1]] = balance_sheet[balance_sheet.columns[1]].map(lambda x: x.replace(',',''))     # Format commas in col 1
+                balance_sheet[balance_sheet.columns[2]] = balance_sheet[balance_sheet.columns[2]].map(lambda x: x.replace(',',''))     # Format commas in col 2
+                balance_sheet[balance_sheet.columns[1:]] = balance_sheet[balance_sheet.columns[1:]].astype(float)     # Convert to data to float
+                requested_info[date] = balance_sheet
+    
+    return requested_info
 
 
 if __name__ == '__main__':
@@ -55,4 +82,5 @@ if __name__ == '__main__':
     name_report = '10-Q'
 
     filings_sec = get_filings(reports, name_company, name_report)
-    url_links = html_code(filings_sec)
+    url_links = html_link(filings_sec)
+    statements = scrap_data(url_links)
